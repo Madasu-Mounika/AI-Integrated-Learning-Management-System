@@ -10,8 +10,49 @@ function TeacherDashboard() {
   const [loading, setLoading] = useState(false);
   const [performance, setPerformance] = useState([]);
   const [topic, setTopic] = useState("");
+  const [uploadedVideos, setUploadedVideos] = useState([]);
+  const [uploadedMaterials, setUploadedMaterials] = useState([]);
 
+  //get materials 
+  const getMaterials = async () => {
+  const res = await fetch("http://127.0.0.1:5000/search_materials");
+  const data = await res.json();
+  setUploadedMaterials(data);
+};
+//delete materials 
+const deleteMaterial = async (id) => {
+  const res = await fetch(
+    `http://127.0.0.1:5000/delete_material/${id}`,
+    {
+      method: "DELETE"
+    }
+  );
 
+  const data = await res.json();
+  alert(data.message);
+
+  getMaterials();
+};
+  //get videos
+  const getVideos = async () => {
+    const res = await fetch("http://127.0.0.1:5000/search_videos");
+    const data = await res.json();
+    setUploadedVideos(data);
+  };
+  //delete videos
+  const deleteVideo = async (id) => {
+    const res = await fetch(
+      `http://127.0.0.1:5000/delete_video/${id}`,
+      {
+        method: "DELETE"
+      }
+    );
+
+    const data = await res.json();
+    alert(data.message);
+
+    getVideos();
+  };
   // 🔥 Generate Quiz
   const generateQuiz = async () => {
     if (!content) {
@@ -54,10 +95,10 @@ function TeacherDashboard() {
     setQuizQuestions(updated);
   };
   const getPerformance = async () => {
-  const res = await fetch("http://127.0.0.1:5000/student_performance");
-  const data = await res.json();
-  setPerformance(data);
-};
+    const res = await fetch("http://127.0.0.1:5000/student_performance");
+    const data = await res.json();
+    setPerformance(data);
+  };
 
   // 💾 Save Quiz
   const saveQuiz = async () => {
@@ -162,7 +203,7 @@ function TeacherDashboard() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ topic,url: video })
+        body: JSON.stringify({ topic, url: video })
       });
 
       const data = await res.json();
@@ -234,11 +275,11 @@ function TeacherDashboard() {
       <div style={styles.sidebar}>
         <h2>Teacher</h2>
 
-        <p style={styles.menu} onClick={() => setActive("material")}>📄 Upload Material</p>
-        <p style={styles.menu} onClick={() => setActive("video")}>🎥 Add Video</p>
+        <p style={styles.menu} onClick={() => {setActive("material"); getMaterials();}}>📄 Upload Material</p>
+        <p style={styles.menu} onClick={() => { setActive("video"); getVideos(); }}>🎥 Add Video</p>
         <p style={styles.menu} onClick={() => setActive("quiz")}>🤖 Generate Quiz</p>
         <p style={styles.menu} onClick={() => setActive("ppt")}>📊 Generate PPT</p>
-        <p style={styles.menu} onClick={() => {setActive("performance"); getPerformance();}}> 📈 Student Performance</p>
+        <p style={styles.menu} onClick={() => { setActive("performance"); getPerformance(); }}> 📈 Student Performance</p>
       </div>
 
       {/* Main */}
@@ -249,12 +290,12 @@ function TeacherDashboard() {
           <>
             <h2>Upload Material</h2>
             <input
-                placeholder="Enter Topic"
-                style = {styles.input}
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-              />
-            
+              placeholder="Enter Topic"
+              style={styles.input}
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+            />
+
             <input type="file" onChange={(e) => setMaterial(e.target.files[0])} />
 
             <br /><br />
@@ -262,6 +303,22 @@ function TeacherDashboard() {
             <button style={styles.button} onClick={uploadMaterial}>
               Upload
             </button>
+
+            <h3>Uploaded Materials</h3>
+
+{uploadedMaterials.map((m, i) => (
+  <div key={i} style={styles.card}>
+    <p><strong>{m.topic}</strong></p>
+    <p>{m.filename}</p>
+
+    <button
+      style={styles.deleteBtn}
+      onClick={() => deleteMaterial(m.id)}
+    >
+      Delete
+    </button>
+  </div>
+))}
           </>
         )}
 
@@ -271,10 +328,10 @@ function TeacherDashboard() {
             <h2>Add Video</h2>
             <input
               placeholder="Enter Topic"
-              style = {styles.input}
+              style={styles.input}
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-             />
+            />
             <input
               type="text"
               placeholder="Enter YouTube link"
@@ -286,6 +343,24 @@ function TeacherDashboard() {
             <button style={styles.button} onClick={uploadVideo}>
               Add Video
             </button>
+            <h3>Uploaded Videos</h3>
+
+            {uploadedVideos.map((v, i) => (
+              <div key={i} style={styles.card}>
+                <p><strong>{v.topic}</strong></p>
+                <p>{v.url}</p>
+
+                <button
+                  style={styles.deleteBtn}
+                  onClick={() => deleteVideo(v.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+
+
+
           </>
         )}
 
@@ -363,19 +438,19 @@ function TeacherDashboard() {
           </>
         )}
         {active === "performance" && (
-  <>
-    <h2>Student Performance</h2>
+          <>
+            <h2>Student Performance</h2>
 
-    {performance.map((student, i) => (
-      <div key={i} style={styles.card}>
-        <p><strong>Email:</strong> {student.email}</p>
-        <p><strong>Tests Attempted:</strong> {student.tests_attempted}</p>
-        <p><strong>Average Score:</strong> {student.average_score}%</p>
-        <p><strong>Status:</strong> {student.status}</p>
-      </div>
-    ))}
-  </>
-)}
+            {performance.map((student, i) => (
+              <div key={i} style={styles.card}>
+                <p><strong>Email:</strong> {student.email}</p>
+                <p><strong>Tests Attempted:</strong> {student.tests_attempted}</p>
+                <p><strong>Average Score:</strong> {student.average_score}%</p>
+                <p><strong>Status:</strong> {student.status}</p>
+              </div>
+            ))}
+          </>
+        )}
 
       </div>
     </div>

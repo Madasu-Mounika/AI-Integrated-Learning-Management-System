@@ -344,6 +344,46 @@ def upload_video():
 
     return jsonify({"message": "Video uploaded"})
 
+# =========== delete videos =============== #
+@app.route('/delete_video/<int:video_id>', methods=['DELETE'])
+def delete_video(video_id):
+    try:
+        video = Video.query.get(video_id)
+
+        if not video:
+            return jsonify({"message": "Video not found"})
+
+        db.session.delete(video)
+        db.session.commit()
+
+        return jsonify({"message": "Video deleted successfully"})
+
+    except Exception as e:
+        print("DELETE VIDEO ERROR:", e)
+        return jsonify({"message": "Failed to delete video"})
+
+# =============== delete materials ==========#
+@app.route('/delete_material/<int:material_id>', methods=['DELETE'])
+def delete_material(material_id):
+    try:
+        material = Material.query.get(material_id)
+
+        if not material:
+            return jsonify({"message": "Material not found"})
+
+        file_path = os.path.join("uploads", material.filename)
+
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+        db.session.delete(material)
+        db.session.commit()
+
+        return jsonify({"message": "Material deleted successfully"})
+
+    except Exception as e:
+        print("DELETE MATERIAL ERROR:", e)
+        return jsonify({"message": "Failed to delete material"})
 # =========== student dashboard =========== #
 @app.route('/search_materials')
 def search_materials():
@@ -357,7 +397,8 @@ def search_materials():
         materials = Material.query.all()
 
     return jsonify([
-        {   "topic":m.topic,
+        {    "id":m.id,
+             "topic":m.topic,
             "filename": m.filename}
         for m in materials
     ])
@@ -374,7 +415,8 @@ def search_videos():
         videos = Video.query.all()
 
     return jsonify([
-        {   "topic":v.topic,
+        {   "id":v.id,
+            "topic":v.topic,
             "url": v.url} for v in videos
     ])
 # =========== search quizzes =========== #
