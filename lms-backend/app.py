@@ -50,10 +50,12 @@ class Question(db.Model):
     answer = db.Column(db.String(200))
 class Material(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    topic = db.Column(db.String(200))
     filename = db.Column(db.String(200))
 
 class Video(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    topic = db.Column(db.String(200))
     url = db.Column(db.String(300))
 class QuizAttempt(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -312,38 +314,35 @@ def generate_ppt():
 # =============== upload material =========== #
 @app.route('/upload_material', methods=['POST'])
 def upload_material():
-    try:
-        file = request.files['file']
+    file = request.files["file"]
+    topic = request.form.get("topic")
 
-        filepath = os.path.join(UPLOAD_FOLDER, file.filename)
-        file.save(filepath)
+    file.save(os.path.join("uploads", file.filename))
 
-        material = Material(filename=file.filename)
-        db.session.add(material)
-        db.session.commit()
+    material = Material(
+        topic=topic,
+        filename=file.filename
+    )
 
-        return jsonify({"message": "Material uploaded successfully"})
+    db.session.add(material)
+    db.session.commit()
 
-    except Exception as e:
-        print("UPLOAD ERROR:", e)
-        return jsonify({"error": str(e)})
+    return jsonify({"message": "Material uploaded"})
     
 # ================upload video ==============#
 @app.route('/upload_video', methods=['POST'])
 def upload_video():
-    try:
-        data = request.json
-        url = data.get("url")
+    data = request.json
 
-        video = Video(url=url)
-        db.session.add(video)
-        db.session.commit()
+    video = Video(
+        topic=data.get("topic"),
+        url=data.get("url")
+    )
 
-        return jsonify({"message": "Video added successfully"})
+    db.session.add(video)
+    db.session.commit()
 
-    except Exception as e:
-        print("VIDEO ERROR:", e)
-        return jsonify({"error": str(e)})
+    return jsonify({"message": "Video uploaded"})
 
 # =========== student dashboard =========== #
 @app.route('/search_materials')
@@ -352,13 +351,14 @@ def search_materials():
 
     if query:
         materials = Material.query.filter(
-            Material.filename.ilike(f"%{query}%")
+            Material.topic.ilike(f"%{query}%")
         ).all()
     else:
         materials = Material.query.all()
 
     return jsonify([
-        {"filename": m.filename}
+        {   "topic":m.topic,
+            "filename": m.filename}
         for m in materials
     ])
 # ============ search videos ======= #
@@ -368,13 +368,14 @@ def search_videos():
 
     if query:
         videos = Video.query.filter(
-            Video.url.ilike(f"%{query}%")
+            Video.topic.ilike(f"%{query}%")
         ).all()
     else:
         videos = Video.query.all()
 
     return jsonify([
-        {"url": v.url} for v in videos
+        {   "topic":v.topic,
+            "url": v.url} for v in videos
     ])
 # =========== search quizzes =========== #
 @app.route('/search_quizzes')
@@ -545,4 +546,7 @@ def ask_doubt():
 # ================= RUN APP =================
 
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+
     app.run(debug=True)

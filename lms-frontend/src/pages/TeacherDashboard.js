@@ -9,6 +9,8 @@ function TeacherDashboard() {
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [performance, setPerformance] = useState([]);
+  const [topic, setTopic] = useState("");
+
 
   // 🔥 Generate Quiz
   const generateQuiz = async () => {
@@ -130,6 +132,7 @@ function TeacherDashboard() {
     }
 
     const formData = new FormData();
+    formData.append("topic", topic);
     formData.append("file", material);
 
     try {
@@ -159,7 +162,7 @@ function TeacherDashboard() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ url: video })
+        body: JSON.stringify({ topic,url: video })
       });
 
       const data = await res.json();
@@ -241,13 +244,17 @@ function TeacherDashboard() {
       {/* Main */}
       <div style={styles.main}>
 
-        {active === "" && <h2>Welcome to AI LMS</h2>}
-
         {/* MATERIAL */}
         {active === "material" && (
           <>
             <h2>Upload Material</h2>
-
+            <input
+                placeholder="Enter Topic"
+                style = {styles.input}
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+              />
+            
             <input type="file" onChange={(e) => setMaterial(e.target.files[0])} />
 
             <br /><br />
@@ -262,7 +269,12 @@ function TeacherDashboard() {
         {active === "video" && (
           <>
             <h2>Add Video</h2>
-
+            <input
+              placeholder="Enter Topic"
+              style = {styles.input}
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+             />
             <input
               type="text"
               placeholder="Enter YouTube link"
