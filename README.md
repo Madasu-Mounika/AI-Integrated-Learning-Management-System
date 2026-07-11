@@ -185,17 +185,7 @@ http://localhost:3000
 
 ---
 
-## 📸 Screenshots
 
-- Login Page
-- Teacher Dashboard
-- Student Dashboard
-- AI Quiz Generation
-- AI PPT Generation
-- Student Performance Analytics
-- AI Doubt Solver
-
----
 
 ## 🎯 Future Enhancements
 
